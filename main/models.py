@@ -1,11 +1,23 @@
 from django.db import models
 
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+    order = models.IntegerField(default=0)  
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "categories"
+        ordering = ['order', 'name']
+
 class Menu(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    price = models.IntegerField()  # in IDR
-    image_url = models.CharField(max_length=500, blank=True)
-
+    price = models.IntegerField(null=True, blank=True)
+    image_url = models.URLField(max_length=500, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='menus')
+    
     def to_dict(self):
         return {
             "id": self.id,
@@ -13,6 +25,8 @@ class Menu(models.Model):
             "description": self.description,
             "price": self.price,
             "image_url": self.image_url,
+            "category": self.category.name if self.category else None,
+            "category_id": self.category.id if self.category else None,
         }
 
 class Order(models.Model):

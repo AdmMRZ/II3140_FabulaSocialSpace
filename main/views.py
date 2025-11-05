@@ -1,7 +1,10 @@
 import json
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
-from .services import AuthService, MenuService, OrderService, TenantService
+from .services import MenuService, OrderService, TenantService
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+from django.conf import settings
 
 @csrf_exempt
 def auth_google(request):
@@ -9,21 +12,86 @@ def auth_google(request):
         return JsonResponse({"status": "error", "message": "method not allowed"}, status=405)
     try:
         body = json.loads(request.body)
-        credential = body.get("credential")
+        credential = body.get('credential') or body.get('token')
         if not credential:
-            return HttpResponseBadRequest("missing credential")
-        user = AuthService.verify_google_token(credential)
-        if not user:
-            return JsonResponse({"status": "error", "message": "invalid token"}, status=400)
-        return JsonResponse({"status": "success", "user": user})
+            return HttpResponseBadRequest('missing credential')
+
+        try:
+            idinfo = id_token.verify_oauth2_token(credential, google_requests.Request(), settings.GOOGLE_CLIENT_ID)
+        except ValueError as e:
+            return HttpResponseBadRequest('invalid token: ' + str(e))
+
+        user_data = {
+            'name': idinfo.get('name'),
+            'email': idinfo.get('email'),
+            'picture': idinfo.get('picture')
+        }
+
+        request.session['user'] = user_data
+
+        return JsonResponse({'status': 'success', 'user': user_data})
     except Exception as e:
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
-def menu_list(request):
-    if request.method != "GET":
+@csrf_exempt
+def logout(request):
+    if request.method != "POST":
         return JsonResponse({"status": "error", "message": "method not allowed"}, status=405)
-    data = MenuService.list_menus()
-    return JsonResponse({"status": "success", "data": data})
+    
+    request.session.flush()
+    return JsonResponse({"status": "success", "message": "logged out successfully"})
+
+@csrf_exempt
+def menu_list(request):
+    if request.method == "GET":
+        data = MenuService.list_menus()
+        return JsonResponse({"status": "success", "data": data})
+
+    if request.method == "POST":
+        try:
+            body = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({"status": "error", "message": "invalid json"}, status=400)
+
+        if isinstance(body, list):
+            created_menus = []
+            for menu_data in body:
+                name = menu_data.get("name")
+                description = menu_data.get("description", "")
+                price = menu_data.get("price")
+                image_url = menu_data.get("image_url", "")
+                category = menu_data.get("category")
+                
+                created = MenuService.create_menu(
+                    name=name,
+                    description=description,
+                    price=price,
+                    image_url=image_url,
+                    category=category
+                )
+                created_menus.append(created)
+            return JsonResponse({"status": "success", "data": created_menus}, status=201)
+        
+        name = body.get("name")
+        description = body.get("description", "")
+        price = body.get("price")
+        image_url = body.get("image_url", "")
+        category = body.get("category")
+
+        try:
+            created = MenuService.create_menu(
+                name=name,
+                description=description,
+                price=price,
+                image_url=image_url,
+                category=category)
+            return JsonResponse({"status": "success", "data": created}, status=201)
+        except ValueError as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+
+    return JsonResponse({"status": "error", "message": "method not allowed"}, status=405)
 
 @csrf_exempt
 def order_create(request):

@@ -27,6 +27,20 @@ class MenuService:
         menus = MenuRepository.list_all()
         return [m.to_dict() for m in menus]
 
+    @staticmethod
+    def create_menu(name, description="", price=None, image_url="", category=None):
+        if not name:
+            raise ValueError("name is required")
+        
+        m = MenuRepository.create(
+            name=name, 
+            description=description, 
+            price=price, 
+            image_url=image_url,
+            category=category
+        )
+        return m.to_dict()
+
 class OrderService:
     @staticmethod
     def _generate_order_id():
@@ -34,7 +48,6 @@ class OrderService:
 
     @staticmethod
     def create_order(table_number, items):
-        
         items_data = []
         total = 0
         for it in items:
@@ -54,12 +67,18 @@ class OrderService:
         order_id = OrderService._generate_order_id()
         order = OrderRepository.create_order(order_id, table_number, items_data, total)
 
-        qris_image = "/images/qris.png"
         return {
             "order_id": order.order_id,
-            "qris_image": qris_image,
-            "total": total
+            "total": total,
+            "status": "pending"
         }
+
+    @staticmethod
+    def confirm_payment(order_id):
+        order = OrderRepository.update_order_status(order_id, "paid")
+        if not order:
+            raise ValueError(f"Order {order_id} not found")
+        return order.to_dict()
 
 class TenantService:
     @staticmethod

@@ -1,0 +1,72 @@
+.splash-container {
+  position: relative;
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: radial-gradient(ellipse at center, rgba(20,20,20,1) 0%, rgba(10,10,10,1) 50%, rgba(5,5,5,1) 100%);
+  color: #fff;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.splash-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.6) 60%);
+  pointer-events: none;
+}
+
+.splash-logo {
+  width: 240px;
+  height: auto;
+  z-index: 2;
+  animation: logoEntrance 30s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.splash-tag {
+  margin-top: 18px;
+  font-size: 1.05rem;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.85);
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: tagFade 1.2s 0.8s ease forwards;
+}
+
+.splash-hint {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.55);
+  z-index: 2;
+  opacity: 0;
+  animation: hintPulse 2s 1.6s infinite ease-in-out;
+}
+
+@keyframes logoEntrance {
+  0% { transform: scale(0.86); opacity: 0; filter: blur(2px); }
+  40% { transform: scale(1.02); opacity: 1; filter: blur(0); }
+  70% { transform: scale(0.98); }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+@keyframes tagFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hintPulse {
+  0% { opacity: 0; transform: translateY(0); }
+  50% { opacity: 0.85; transform: translateY(-4px); }
+  100% { opacity: 0; transform: translateY(0); }
+}
+
+/* Make sure everything scales down nicely on small screens */
+@media (max-width: 480px) {
+  .splash-logo { width: 170px; }
+  .splash-tag { font-size: 0.95rem; }
+  .splash-hint { font-size: 0.75rem; }
+}

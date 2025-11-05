@@ -11,6 +11,24 @@ class MenuRepository:
     def get_by_id(menu_id):
         return Menu.objects.filter(id=menu_id).first()
 
+    @staticmethod
+    def create(name, description="", price=None, image_url="", category=None):
+        from .models import Category
+        
+        if category:
+            cat, _ = Category.objects.get_or_create(name=category)
+        else:
+            cat = None
+            
+        m = Menu.objects.create(
+            name=name,
+            description=description or "",
+            price=price,
+            image_url=image_url or "",
+            category=cat
+        )
+        return m
+
 class OrderRepository:
     @staticmethod
     @transaction.atomic
