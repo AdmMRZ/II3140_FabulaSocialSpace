@@ -95,7 +95,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://web-production-be1e5.up.railway.app",
     "https://uts-ii-3140-fabula-social-space.vercel.app",
 ]
 
@@ -105,7 +104,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://web-production-be1e5.up.railway.app",
     "https://uts-ii-3140-fabula-social-space.vercel.app",
 ]
 
