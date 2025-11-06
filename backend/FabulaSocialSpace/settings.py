@@ -96,6 +96,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://web-production-be1e5.up.railway.app",
+    "https://uts-ii-3140-fabula-social-space.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -105,10 +106,11 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://web-production-be1e5.up.railway.app",
+    "https://uts-ii-3140-fabula-social-space.vercel.app",
 ]
 
 SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'None'
 SESSION_COOKIE_DOMAIN = None
 
 SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
