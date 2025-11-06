@@ -22,6 +22,7 @@ export function AuthProvider({ children }) {
       // Expecting { status: 'success', user: { ... } }
       if (r && r.data && r.data.status === 'success' && r.data.user) {
         setUser(r.data.user);
+        console.log('AuthContext: loginWithGoogle set user ->', r.data.user);
         return { ok: true, user: r.data.user };
       }
       return { ok: false, error: r?.data?.message || 'Unknown response' };

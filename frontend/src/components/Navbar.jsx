@@ -8,6 +8,7 @@ import './Navbar.css';
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const { totalItems } = useContext(CartContext);
+  console.log('Navbar: user ->', user);
 
   return (
     <nav className="navbar">
