@@ -7,7 +7,24 @@ import './Navbar.css';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
-  const { totalItems } = useContext(CartContext);
+  const { totalItems, addToCart } = useContext(CartContext);
+  const handleCartDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleCartDrop = (e) => {
+    e.preventDefault();
+    try {
+      const payload = e.dataTransfer.getData('application/json');
+      if (!payload) return;
+      const menu = JSON.parse(payload);
+      if (menu) addToCart(menu, 1);
+    } catch (err) {
+      
+      console.warn('Navbar drop parse error', err);
+    }
+  };
   console.log('Navbar: user ->', user);
 
   return (
@@ -22,7 +39,7 @@ const Navbar = () => {
       <div className="nav-right">
         <Link to="/menu" className="nav-link">Menu</Link>
         <Link to="/tenant-request" className="nav-link">Tenant Request</Link>
-        <Link to="/checkout" className="nav-link nav-cart">
+        <Link to="/checkout" className="nav-link nav-cart" onDragOver={handleCartDragOver} onDrop={handleCartDrop}>
           Cart
           {totalItems > 0 && <span className="cart-badge">{totalItems}</span>}
         </Link>
