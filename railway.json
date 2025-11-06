@@ -2,14 +2,17 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pip install -r requirements.txt",
+    "buildCommand": "cd backend && pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate --noinput",
     "watchPatterns": [
-      "/**"
+      "/backend/**"
     ]
   },
   "deploy": {
-    "startCommand": "gunicorn FabulaSocialSpace.wsgi",
+    "numReplicas": 1,
+    "startCommand": "cd backend && gunicorn FabulaSocialSpace.wsgi:application --timeout 120 --workers 4 --threads 2",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
+    "restartPolicyMaxRetries": 10,
+    "healthcheckPath": "/api/menu",
+    "healthcheckTimeout": 100
   }
 }
