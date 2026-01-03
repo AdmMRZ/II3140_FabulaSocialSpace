@@ -1,106 +1,384 @@
-
 import React, { useContext, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  Image, 
+  TouchableOpacity, 
+  TextInput, 
+  ScrollView, 
+  SafeAreaView,
+  StatusBar,
+  Alert
+} from 'react-native';
 import Navbar from '../components/Navbar';
-import { CartContext } from '../contexts/CartContext';
+import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function CheckoutScreen({ navigation }) {
-  const { cart, updateQty, removeItem, totalPrice } = useContext(CartContext) || { cart: [], updateQty:()=>{}, removeItem:()=>{}, totalPrice:0 };
+  const { cart, updateQty, removeItem, totalPrice } = useCart();
+  const { user, logout } = useAuth();
   const [table, setTable] = useState('');
   const [error, setError] = useState('');
 
+  const handleCheckout = () => {
+    if (!table.trim()) {
+      setError('Please enter your table number');
+      return;
+    }
+    if (cart.length === 0) {
+      setError('Your cart is empty');
+      return;
+    }
+    
+    const orderData = {
+      table_number: parseInt(table),
+      items: cart.map(i => ({ menu_id: i.menu_id, quantity: i.quantity })),
+      total_amount: totalPrice
+    };
+    
+    navigation.navigate('Payment', { orderData });
+  };
+
   return (
-    <ScrollView style={styles.checkout}>
-      <Navbar />
-      <Text style={styles.header}>Your Cart</Text>
-      <View style={styles.checkoutMain}>
-        <View style={{flex:1}}>
-          {cart.length === 0 ? (
-            <View style={styles.emptyCart}><Text>Your cart is empty.</Text></View>
-          ) : (
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <Navbar
+        user={user}
+        onLogout={logout}
+        onCartPress={() => {}}
+      />
+      
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        <Text style={styles.pageTitle}>Checkout</Text>
+        
+        {cart.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>🛒</Text>
+            <Text style={styles.emptyText}>Your cart is empty</Text>
+            <TouchableOpacity 
+              style={styles.browseButton}
+              onPress={() => navigation.navigate('Menu')}
+            >
+              <Text style={styles.browseButtonText}>Browse Menu</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
             <View style={styles.cartList}>
               {cart.map(item => (
                 <View key={item.menu_id} style={styles.cartItem}>
-                  <View style={styles.cartItemLeft}>
-                    <Image source={item.image ? {uri: item.image} : { uri: 'https://via.placeholder.com/150' }} style={styles.cartThumb} />
-                    <View>
-                      <Text style={styles.cartItemName}>{item.name}</Text>
-                      <Text style={styles.cartItemMeta}>Qty: {item.quantity} • Rp {item.price?.toLocaleString?.() || item.price}</Text>
+                  <Image 
+                    source={item.image_url ? { uri: item.image_url } : { uri: 'https://via.placeholder.com/150' }} 
+                    style={styles.itemImage} 
+                  />
+                  <View style={styles.itemDetails}>
+                    <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+                    <Text style={styles.itemPrice}>Rp {parseInt(item.price).toLocaleString('id-ID')}</Text>
+                    
+                    <View style={styles.controls}>
+                      <View style={styles.qtyControl}>
+                        <TouchableOpacity 
+                          style={styles.qtyBtn} 
+                          onPress={() => updateQty(item.menu_id, Math.max(1, item.quantity - 1))}
+                        >
+                          <Text style={styles.qtyBtnText}>-</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.qtyText}>{item.quantity}</Text>
+                        <TouchableOpacity 
+                          style={styles.qtyBtn} 
+                          onPress={() => updateQty(item.menu_id, item.quantity + 1)}
+                        >
+                          <Text style={styles.qtyBtnText}>+</Text>
+                        </TouchableOpacity>
+                      </View>
+                      
+                      <TouchableOpacity onPress={() => removeItem(item.menu_id)}>
+                        <Text style={styles.removeText}>Remove</Text>
+                      </TouchableOpacity>
                     </View>
-                  </View>
-                  <View style={styles.cartItemControls}>
-                    <TouchableOpacity style={styles.qtyBtn} onPress={() => updateQty(item.menu_id, Math.max(1, item.quantity-1))}><Text>-</Text></TouchableOpacity>
-                    <Text style={styles.qtyText}>{item.quantity}</Text>
-                    <TouchableOpacity style={styles.qtyBtn} onPress={() => updateQty(item.menu_id, item.quantity+1)}><Text>+</Text></TouchableOpacity>
-                    <Text style={styles.cartPrice}>Rp {(item.price * item.quantity)?.toLocaleString?.() || (item.price * item.quantity)}</Text>
-                    <TouchableOpacity style={styles.removeBtn} onPress={() => removeItem(item.menu_id)}><Text>Remove</Text></TouchableOpacity>
                   </View>
                 </View>
               ))}
             </View>
-          )}
-        </View>
-        <View style={styles.summary}>
-          <Text style={styles.summaryTitle}>Order Summary</Text>
-          <View style={styles.summaryRow}><Text>Items</Text><Text>{cart.length}</Text></View>
-          <View style={styles.summaryRow}><Text>Subtotal</Text><Text>Rp {totalPrice?.toLocaleString?.() || totalPrice}</Text></View>
-          <View style={{height:12}} />
-          <View style={styles.inputGroup}>
-            <Text>Table Number <Text style={styles.required}>*</Text></Text>
-            <TextInput
-              style={styles.tableInput}
-              value={table}
-              onChangeText={t => { setTable(t); setError(''); }}
-              placeholder="e.g. 12"
-              keyboardType="numeric"
-            />
-            {!!error && <Text style={styles.errorText}>{error}</Text>}
-          </View>
-          <View style={styles.summaryRow}><Text style={{fontWeight:'bold'}}>Total</Text><Text style={styles.totalAmount}>Rp {totalPrice?.toLocaleString?.() || totalPrice}</Text></View>
-          <TouchableOpacity
-            style={styles.checkoutBtn}
-            onPress={() => {
-              if (!table) { setError('Table number is required'); return; }
-              if (!cart.length) { setError('Cart is empty'); return; }
-              const orderData = {
-                table_number: parseInt(table),
-                items: cart.map(i=>({menu_id:i.menu_id, quantity:i.quantity})),
-                total_amount: totalPrice
-              };
-              navigation.navigate('Payment', { orderData });
-            }}
-          >
-            <Text style={{color:'#fff',fontWeight:'bold'}}>Proceed to Payment</Text>
+
+            <View style={styles.summarySection}>
+              <Text style={styles.sectionTitle}>Order Details</Text>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Table Number</Text>
+                <TextInput
+                  style={[styles.input, error && !table ? styles.inputError : null]}
+                  value={table}
+                  onChangeText={(t) => {
+                    setTable(t);
+                    setError('');
+                  }}
+                  placeholder="e.g. 12"
+                  keyboardType="numeric"
+                  maxLength={3}
+                />
+                {!!error && <Text style={styles.errorText}>{error}</Text>}
+              </View>
+
+              <View style={styles.divider} />
+              
+              <View style={styles.row}>
+                <Text style={styles.rowLabel}>Subtotal</Text>
+                <Text style={styles.rowValue}>Rp {totalPrice.toLocaleString('id-ID')}</Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={styles.rowLabel}>Tax (10%)</Text>
+                <Text style={styles.rowValue}>Rp {(totalPrice * 0.1).toLocaleString('id-ID')}</Text>
+              </View>
+              <View style={[styles.row, styles.totalRow]}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalValue}>Rp {(totalPrice * 1.1).toLocaleString('id-ID')}</Text>
+              </View>
+            </View>
+          </>
+        )}
+      </ScrollView>
+
+      {cart.length > 0 && (
+        <View style={styles.footer}>
+          <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
+            <Text style={styles.checkoutButtonText}>Proceed to Payment</Text>
+            <Text style={styles.checkoutButtonPrice}>Rp {(totalPrice * 1.1).toLocaleString('id-ID')}</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </ScrollView>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  checkout: { flex: 1, backgroundColor: '#fff' },
-  header: { textAlign: 'center', marginVertical: 20, fontSize: 24, fontWeight: 'bold' },
-  checkoutMain: { flexDirection: 'row', padding: 16 },
-  emptyCart: { alignItems: 'center', marginTop: 32 },
-  cartList: {},
-  cartItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, backgroundColor:'#f8f9fa', borderRadius:8, padding:8 },
-  cartItemLeft: { flexDirection: 'row', alignItems: 'center', flex:1 },
-  cartThumb: { width: 48, height: 48, borderRadius: 8, marginRight: 12 },
-  cartItemName: { fontWeight: 'bold', fontSize: 16 },
-  cartItemMeta: { color: '#888', fontSize: 13 },
-  cartItemControls: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  qtyBtn: { backgroundColor: '#eee', borderRadius: 4, padding: 4, marginHorizontal: 2 },
-  qtyText: { minWidth: 24, textAlign: 'center' },
-  cartPrice: { marginHorizontal: 8, fontWeight: 'bold' },
-  removeBtn: { backgroundColor: '#ff4757', borderRadius: 4, padding: 4, marginLeft: 4 },
-  summary: { backgroundColor: '#fff', borderRadius: 8, padding: 16, marginLeft: 16, minWidth: 200, elevation: 2 },
-  summaryTitle: { fontWeight: 'bold', fontSize: 18, marginBottom: 8 },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  inputGroup: { marginVertical: 8 },
-  required: { color: '#ff4757' },
-  tableInput: { borderWidth: 1, borderColor: '#eee', borderRadius: 4, padding: 8, marginTop: 4 },
-  errorText: { color: '#ff4757', marginTop: 4 },
-  totalAmount: { color: '#ff4757', fontWeight: 'bold' },
-  checkoutBtn: { backgroundColor: '#ff4757', borderRadius: 8, padding: 12, marginTop: 16, alignItems: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: '#1a1a1a',
+    marginVertical: 20,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 60,
+  },
+  emptyIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 24,
+  },
+  browseButton: {
+    backgroundColor: '#ff4757',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  browseButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  cartList: {
+    marginBottom: 24,
+  },
+  cartItem: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  itemImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: '#f5f5f5',
+  },
+  itemDetails: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: 'space-between',
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1a1a1a',
+  },
+  itemPrice: {
+    fontSize: 14,
+    color: '#ff4757',
+    fontWeight: '600',
+  },
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  qtyControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f1f3f5',
+    borderRadius: 8,
+    padding: 4,
+  },
+  qtyBtn: {
+    width: 28,
+    height: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  qtyBtnText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  qtyText: {
+    marginHorizontal: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  removeText: {
+    fontSize: 12,
+    color: '#999',
+    fontWeight: '600',
+  },
+  summarySection: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 16,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    color: '#1a1a1a',
+  },
+  inputError: {
+    borderColor: '#ff4757',
+  },
+  errorText: {
+    color: '#ff4757',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+    marginVertical: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  rowLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  rowValue: {
+    fontSize: 14,
+    color: '#1a1a1a',
+    fontWeight: '600',
+  },
+  totalRow: {
+    marginTop: 8,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1a1a1a',
+  },
+  totalValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#ff4757',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  checkoutButton: {
+    backgroundColor: '#ff4757',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+  },
+  checkoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  checkoutButtonPrice: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+    opacity: 0.9,
+  },
 });

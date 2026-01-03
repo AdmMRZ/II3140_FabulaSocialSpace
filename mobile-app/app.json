@@ -2,9 +2,10 @@
   "expo": {
     "name": "FabulaMobile",
     "slug": "fabula-mobile",
+    "scheme": "fabula-mobile",
     "version": "1.0.0",
     "assetBundlePatterns": ["**/*"],
-    "platforms": ["ios", "android"],
+    "platforms": ["ios", "android", "web"],
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "splash": {
@@ -19,6 +20,7 @@
       "supportsTablet": true
     },
     "android": {
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#FFFFFF"

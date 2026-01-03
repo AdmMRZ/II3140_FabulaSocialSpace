@@ -1,132 +1,233 @@
-
-import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TextInput, 
+  ActivityIndicator, 
+  FlatList, 
+  TouchableOpacity, 
+  SafeAreaView,
+  StatusBar,
+  Platform
+} from 'react-native';
 import Navbar from '../components/Navbar';
 import MenuCard from '../components/MenuCard';
 import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
-export default function MenuScreen() {
+export default function MenuScreen({ navigation }) {
+  const { user, logout } = useAuth();
   const [menus, setMenus] = useState([]);
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  
+  const listRef = useRef(null);
 
   useEffect(() => {
-    api.get('/menu')
-      .then(r => {
-        setMenus(r.data.data || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setMenus([]);
-        setLoading(false);
-      });
+    fetchMenu();
   }, []);
 
-  const groupedMenus = useMemo(() => {
-    const filtered = menus.filter(m => m.name.toLowerCase().includes(q.toLowerCase()));
-    return filtered.reduce((acc, menu) => {
-      const category = menu.category || 'Uncategorized';
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(menu);
-      return acc;
-    }, {});
-  }, [menus, q]);
+  const fetchMenu = async () => {
+    try {
+      const r = await api.get('/menu');
+      setMenus(r.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch menu:", error);
+      setMenus([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Extract unique categories
+  const categories = useMemo(() => {
+    const cats = ['All', ...new Set(menus.map(m => m.category || 'Others'))];
+    return cats;
+  }, [menus]);
+
+  // Filter menus based on search and category
+  const filteredMenus = useMemo(() => {
+    return menus.filter(m => {
+      const matchesSearch = m.name.toLowerCase().includes(q.toLowerCase());
+      const matchesCategory = selectedCategory === 'All' || (m.category || 'Others') === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [menus, q, selectedCategory]);
+
+  const renderCategoryItem = ({ item }) => (
+    <TouchableOpacity 
+      style={[
+        styles.categoryChip, 
+        selectedCategory === item && styles.categoryChipActive
+      ]}
+      onPress={() => setSelectedCategory(item)}
+    >
+      <Text style={[
+        styles.categoryChipText,
+        selectedCategory === item && styles.categoryChipTextActive
+      ]}>
+        {item}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const renderMenu = useCallback(({ item }) => <MenuCard menu={item} />, []);
 
   return (
-    <ScrollView style={styles.menuContainer}>
-      <Navbar />
-      <View style={styles.menuHeader}>
-        <Text style={styles.menuTitle}>Our Menu</Text>
-        <View style={styles.menuSearch}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <Navbar
+        user={user}
+        onLogout={logout}
+        onCartPress={() => navigation.navigate('Checkout')}
+      />
+      
+      <View style={styles.headerContainer}>
+        <Text style={styles.pageTitle}>Our Menu</Text>
+        <Text style={styles.pageSubtitle}>Discover our delicious offerings</Text>
+        
+        <View style={styles.searchContainer}>
           <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search our menu..."
+            placeholder="Search coffee, food..."
             value={q}
             onChangeText={setQ}
-            placeholderTextColor="#aaa"
+            placeholderTextColor="#999"
+          />
+        </View>
+
+        <View style={styles.categoriesContainer}>
+          <FlatList
+            data={categories}
+            renderItem={renderCategoryItem}
+            keyExtractor={item => item}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesList}
           />
         </View>
       </View>
-      <View style={styles.menuCategories}>
-        {loading ? (
-          <ActivityIndicator size="large" color="#ff4757" style={{marginTop: 32}} />
-        ) : Object.keys(groupedMenus).length > 0 ? (
-          Object.entries(groupedMenus).map(([category, items]) => (
-            <View key={category} style={styles.categorySection}>
-              <Text style={styles.categoryTitle}>{category}</Text>
-              <View style={styles.menuGrid}>
-                {items.map(m => <MenuCard key={m.id} menu={m} />)}
-              </View>
+
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#ff4757" />
+        </View>
+      ) : (
+        <FlatList
+          ref={listRef}
+          data={filteredMenus}
+          renderItem={renderMenu}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={styles.menuList}
+          ListEmptyComponent={
+            <View style={styles.centerContainer}>
+              <Text style={styles.emptyText}>No items found</Text>
             </View>
-          ))
-        ) : (
-          <Text style={styles.noResults}>No menu items found matching "{q}"</Text>
-        )}
-      </View>
-    </ScrollView>
+          }
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={10}
+          maxToRenderPerBatch={5}
+          windowSize={10}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  menuContainer: {
+  container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f9fa',
   },
-  menuHeader: {
-    padding: 20,
+  headerContainer: {
     backgroundColor: '#fff',
-    alignItems: 'center',
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 5,
+    zIndex: 10,
   },
-  menuTitle: {
+  pageTitle: {
     fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 16,
+    fontWeight: '800',
     color: '#1a1a1a',
+    paddingHorizontal: 20,
   },
-  menuSearch: {
+  pageSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    width: '90%',
-    maxWidth: 400,
+    backgroundColor: '#f1f3f5',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 48,
+    marginBottom: 16,
   },
   searchIcon: {
-    fontSize: 18,
-    marginRight: 8,
-    color: '#888',
+    fontSize: 16,
+    marginRight: 12,
+    opacity: 0.5,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#222',
-    paddingVertical: 4,
+    color: '#1a1a1a',
+    height: '100%',
   },
-  menuCategories: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+  categoriesContainer: {
+    marginBottom: 4,
   },
-  categorySection: {
-    marginBottom: 32,
+  categoriesList: {
+    paddingHorizontal: 20,
+    paddingRight: 8,
   },
-  categoryTitle: {
-    fontSize: 22,
+  categoryChip: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f1f3f5',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  categoryChipActive: {
+    backgroundColor: '#fff',
+    borderColor: '#ff4757',
+  },
+  categoryChipText: {
+    fontSize: 14,
     fontWeight: '600',
-    marginBottom: 12,
+    color: '#666',
+  },
+  categoryChipTextActive: {
     color: '#ff4757',
   },
-  menuGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+  menuList: {
+    paddingTop: 16,
+    paddingBottom: 100, // Space for bottom content if any
   },
-  noResults: {
-    textAlign: 'center',
-    color: '#888',
-    marginTop: 32,
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 40,
+  },
+  emptyText: {
     fontSize: 16,
+    color: '#888',
   },
 });

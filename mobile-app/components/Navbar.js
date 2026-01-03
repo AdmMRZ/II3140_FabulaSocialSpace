@@ -1,61 +1,58 @@
-
-import React, { useRef } from 'react';
+import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { useCart } from '../contexts/CartContext';
-import { useDrop } from '../contexts/DropContext';
 
 export default function Navbar({ user, onLogout, onCartPress }) {
-  const cartRef = useRef(null);
   const { totalItems } = useCart();
-  const { registerZone, unregisterZone } = useDrop();
-
-  const onLayoutCart = () => {
-    if (!cartRef.current) return;
-    cartRef.current.measure((fx, fy, width, height, px, py) => {
-      registerZone('cart', { x: px, y: py, width, height });
-    });
-  };
+  const navigation = useNavigation();
 
   return (
-    <View style={styles.navbar}>
-      <View style={styles.left}>
-        <Image source={require('../assets/logo.png')} style={styles.logo} />
-        <Text style={styles.brand}>Fabula Social Space</Text>
-      </View>
-      <View style={styles.right}>
-        {/* Drop area for cart */}
-        <TouchableOpacity
-          ref={cartRef}
-          style={styles.link}
-          onPress={onCartPress}
-          onLayout={onLayoutCart}
+    <SafeAreaView edges={["top"]} style={styles.safeArea}>
+      <View style={styles.navbar}>
+        <TouchableOpacity 
+          style={styles.left} 
+          onPress={() => navigation.navigate('Home')}
+          activeOpacity={0.7}
         >
-          <Text style={styles.linkText}>Cart</Text>
-          {totalItems > 0 && <View style={styles.cartBadge}><Text style={styles.cartBadgeText}>{totalItems}</Text></View>}
+          <Image source={require('../assets/logo.png')} style={styles.logo} />
+          <Text style={styles.brand} numberOfLines={1}>
+            Fabula Social Space
+          </Text>
         </TouchableOpacity>
-        {user ? (
-          <View style={styles.profile}>
-            <Image source={{ uri: user.picture }} style={styles.profilePic} />
-            <View>
-              <Text style={styles.profileName}>{user.name}</Text>
-              <Text style={styles.profileEmail}>{user.email}</Text>
-            </View>
-            <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}><Text style={styles.logoutText}>Logout</Text></TouchableOpacity>
-          </View>
-        ) : null}
+        <View style={styles.right}>
+          <TouchableOpacity
+            style={styles.cartButton}
+            onPress={onCartPress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.cartIcon}>🛒</Text>
+            {totalItems > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{totalItems}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: '#fff',
+  },
   navbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: '#fff',
-    elevation: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   left: {
     flexDirection: 'row',
@@ -64,63 +61,41 @@ const styles = StyleSheet.create({
   logo: {
     width: 32,
     height: 32,
-    marginRight: 8,
+    marginRight: 10,
+    borderRadius: 8,
   },
   brand: {
-    fontWeight: 'bold',
+    fontWeight: '700',
     fontSize: 18,
+    color: '#1a1a1a',
   },
   right: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  link: {
-    marginRight: 16,
-    flexDirection: 'row',
+  cartButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  cartIcon: {
+    fontSize: 24,
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#ff4757',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
-  linkText: {
-    fontSize: 16,
-    color: '#3c4043',
-  },
-  cartBadge: {
-    backgroundColor: '#3c4043',
-    borderRadius: 8,
-    marginLeft: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  cartBadgeText: {
+  badgeText: {
     color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  profile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  profilePic: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 8,
-  },
-  profileName: {
-    fontWeight: 'bold',
-  },
-  profileEmail: {
-    color: '#888',
-    fontSize: 12,
-  },
-  logoutBtn: {
-    marginLeft: 8,
-    padding: 4,
-    backgroundColor: '#f1f3f4',
-    borderRadius: 4,
-  },
-  logoutText: {
-    color: '#3c4043',
+    fontSize: 10,
     fontWeight: 'bold',
   },
 });

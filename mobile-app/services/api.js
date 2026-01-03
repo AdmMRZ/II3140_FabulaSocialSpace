@@ -2,8 +2,11 @@
 import axios from 'axios';
 
 // Default base: try common emulator host, fallback to localhost
-const DEFAULT_BASE = 'http://10.0.2.2:8000/api';
-const BASE = (typeof process !== 'undefined' && process.env?.API_BASE) || DEFAULT_BASE;
+const DEFAULT_BASE = 'http://192.168.48.111:8000/api';
+// Use EXPO_PUBLIC_API_URL if defined (create a .env file), otherwise use default
+const BASE = process.env.EXPO_PUBLIC_API_URL || DEFAULT_BASE;
+
+console.log('API Base URL:', BASE);
 
 const client = axios.create({
   baseURL: BASE,
