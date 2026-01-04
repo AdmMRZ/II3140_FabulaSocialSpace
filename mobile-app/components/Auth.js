@@ -5,7 +5,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
 import { useAuth } from '../contexts/AuthContext';
 
-const expoClientId = '513713663593-f1ps8a2fper6vjr46ebik02grnqn7itq.apps.googleusercontent.com';
+const expoClientId = '513713663593-105v397t19as7opec1o30nllvn8vd04m.apps.googleusercontent.com';
 const androidClientId = expoClientId;
 const iosClientId = expoClientId;
 const username = 'AdmMRZ';
