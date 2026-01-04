@@ -5,7 +5,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
 import { useAuth } from '../contexts/AuthContext';
 
-const expoClientId = '513713663593-g19g4o46362o3tro6hl8m5dmbc8kgjso.apps.googleusercontent.com';
+const expoClientId = '513713663593-f1ps8a2fper6vjr46ebik02grnqn7itq.apps.googleusercontent.com';
 const androidClientId = expoClientId;
 const iosClientId = expoClientId;
 const username = 'AdmMRZ';
@@ -53,7 +53,7 @@ export default function Auth() {
     <View style={styles.authContainer}>
       <TouchableOpacity
         style={styles.googleBtn}
-        onPress={() => promptAsync()}
+        onPress={() => promptAsync({ useProxy: true })}
         disabled={!request}
         activeOpacity={0.8}
       >

@@ -20,7 +20,7 @@ export function CartProvider({ children }) {
       menu_id: menu.id ?? menu.menu_id,
       name: menu.name,
       price: menu.price ?? 0,
-      image: menu.image_url || menu.image,
+      image_url: menu.image_url || menu.image,
       quantity: qty
     };
     addItem(item);
