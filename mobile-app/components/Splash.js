@@ -110,8 +110,18 @@ export default function Splash({ navigation }) {
   }, []);
 
   const handleGetStarted = () => {
-    if (animationComplete) {
-      navigation.replace('Home');
+    try {
+      console.log('Get Started pressed, animation complete:', animationComplete);
+      if (animationComplete) {
+        navigation.replace('Home');
+      } else {
+        // Force navigate even if animation not complete
+        navigation.replace('Home');
+      }
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Fallback: try navigate instead of replace
+      navigation.navigate('Home');
     }
   };
 
