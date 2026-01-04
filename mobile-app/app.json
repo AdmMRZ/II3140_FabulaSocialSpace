@@ -4,8 +4,14 @@
     "slug": "fabula-mobile",
     "scheme": "fabula-mobile",
     "version": "1.0.0",
-    "assetBundlePatterns": ["**/*"],
-    "platforms": ["ios", "android", "web"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "splash": {
@@ -17,13 +23,20 @@
       "fallbackToCacheTimeout": 0
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fabula.mobile"
     },
     "android": {
+      "package": "com.fabula.mobile",
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#FFFFFF"
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e8cdd434-0ae9-469c-9cc1-a945cf3ebfed"
       }
     }
   }

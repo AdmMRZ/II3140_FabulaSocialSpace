@@ -1,33 +1,65 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
-
+import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
+import { makeRedirectUri } from 'expo-auth-session';
 import { useAuth } from '../contexts/AuthContext';
 
-const expoClientId = '513713663593-105v397t19as7opec1o30nllvn8vd04m.apps.googleusercontent.com';
-const androidClientId = expoClientId;
-const iosClientId = expoClientId;
-const username = 'AdmMRZ';
-const slug = 'fabula-mobile'; 
-const redirectUri = AuthSession.makeRedirectUri({
-  useProxy: true,
-  path: `/${username}/${slug}`,
-});
+WebBrowser.maybeCompleteAuthSession();
+
+const webClientId = '713129020648-19pclk3g243ti3mhu6l7fv7k7ll7kndc.apps.googleusercontent.com';
+const iosClientId = '713129020648-19pclk3g243ti3mhu6l7fv7k7ll7kndc.apps.googleusercontent.com';
+const androidClientId = '713129020648-19pclk3g243ti3mhu6l7fv7k7ll7kndc.apps.googleusercontent.com';
 
 export default function Auth() {
   const { loginWithGoogle } = useAuth();
 
+  // Gunakan makeRedirectUri untuk mendeteksi environment
+  // Di Standalone App: hasilnya 'fabula-mobile://oauth2redirect/google'
+  // Di Expo Go: hasilnya 'exp://...'
+  const redirectUri = makeRedirectUri({
+    // scheme: 'fabula-mobile',
+    path: 'oauth2redirect/google'
+  });
+
+  // Jika di Expo Go, kita TERPAKSA pakai Proxy karena Google memblokir 'exp://'
+  // Tapi jika di Standalone App (Build), kita pakai direct link (lebih stabil)
+  // Syarat: 'fabula-mobile://oauth2redirect/google' HARUS ada di Google Cloud Console
+  const finalRedirectUri = redirectUri.includes('exp://') 
+    ? 'https://auth.expo.io/@aqmarfayyaz/fabula-mobile'
+    : redirectUri;
+
+  console.log("Redirect URI (Original):", redirectUri);
+  console.log("Redirect URI (Final used):", finalRedirectUri);
+
   const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId,
-    androidClientId,
+    webClientId,
     iosClientId,
-    redirectUri,
+    androidClientId,
+    redirectUri: finalRedirectUri,
+    scopes: ['profile', 'email'],
   });
 
   React.useEffect(() => {
+    if (request) {
+      console.log("Generated Request Redirect URI:", request.redirectUri);
+    }
+  }, [request]);
+
+  React.useEffect(() => {
+    console.log("=== WAJIB DIDAFTARKAN DI GOOGLE CONSOLE ===");
+    console.log(finalRedirectUri); 
+    console.log("===========================================");
+  }, [finalRedirectUri]);
+
+  React.useEffect(() => {
     const handleAuth = async () => {
-      if (response?.type !== 'success') return;
+      if (response?.type !== 'success') {
+        if (response?.type === 'error') {
+          Alert.alert('Login Error', response?.error?.message || 'Failed to authenticate');
+        }
+        return;
+      }
 
       // Try to get an id_token or accessToken and forward to backend
       const credential =
@@ -53,7 +85,10 @@ export default function Auth() {
     <View style={styles.authContainer}>
       <TouchableOpacity
         style={styles.googleBtn}
-        onPress={() => promptAsync({ useProxy: true })}
+        onPress={() => {
+          console.log("Prompting async with redirectUri:", finalRedirectUri);
+          promptAsync({ redirectUri: finalRedirectUri });
+        }}
         disabled={!request}
         activeOpacity={0.8}
       >
