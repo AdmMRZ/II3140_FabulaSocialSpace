@@ -9,17 +9,25 @@ import {
   ScrollView, 
   Dimensions,
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  useWindowDimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Navbar from '../components/Navbar';
 import Auth from '../components/Auth';
 import { useAuth } from '../contexts/AuthContext';
 
-const { width } = Dimensions.get('window');
-
 export default function HomeScreen({ navigation }) {
   const { user, logout } = useAuth();
+  const { width } = useWindowDimensions();
+
+  // Adjust threshold to 500 to catch smaller tablets or landscape phones
+  const isTabletOrLandscape = width > 500;
+  
+  // Calculate width to fill screen: (Screen Width - PaddingLeft - (MarginRight * 3)) / 3
+  // PaddingLeft: 20, MarginRight: 16. Total gaps: 20 + 16*3 = 68.
+  // We want the last margin (16) to act as right padding, so we aim for total width = screen width.
+  const cardWidth = isTabletOrLandscape ? (width - 68) / 3 : 140;
 
   return (
     <View style={styles.container}>
@@ -70,21 +78,21 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionHeader}>Why Fabula?</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.featuresScroll}>
-            <View style={styles.featureCard}>
+            <View style={[styles.featureCard, { width: cardWidth }]}>
               <View style={[styles.iconCircle, { backgroundColor: '#e3f2fd' }]}>
                 <Text style={styles.featureIcon}>🎯</Text>
               </View>
               <Text style={styles.featureTitle}>Strategic</Text>
               <Text style={styles.featureDesc}>Heart of Dago</Text>
             </View>
-            <View style={styles.featureCard}>
+            <View style={[styles.featureCard, { width: cardWidth }]}>
               <View style={[styles.iconCircle, { backgroundColor: '#e8f5e9' }]}>
                 <Text style={styles.featureIcon}>💻</Text>
               </View>
               <Text style={styles.featureTitle}>Work Ready</Text>
               <Text style={styles.featureDesc}>Fast WiFi</Text>
             </View>
-            <View style={styles.featureCard}>
+            <View style={[styles.featureCard, { width: cardWidth }]}>
               <View style={[styles.iconCircle, { backgroundColor: '#fff3e0' }]}>
                 <Text style={styles.featureIcon}>☕</Text>
               </View>
@@ -247,10 +255,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a1a',
     marginBottom: 4,
+    textAlign: 'center',
   },
   featureDesc: {
     fontSize: 12,
     color: '#888',
+    textAlign: 'center',
   },
   contactSection: {
     marginTop: 32,

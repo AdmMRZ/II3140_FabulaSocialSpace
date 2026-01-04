@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, Animated, TouchableOpacity } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
+import { View, Text, Image, StyleSheet, Animated, TouchableOpacity, useWindowDimensions } from 'react-native';
 
 export default function Splash({ navigation }) {
+  const { width, height } = useWindowDimensions();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const textOpacityAnim = useRef(new Animated.Value(0)).current;
@@ -130,6 +129,39 @@ export default function Splash({ navigation }) {
     }).start();
   };
 
+  const minDim = Math.min(width, height);
+  const isLandscape = width > height;
+
+  const circle1Style = {
+    width: minDim * 0.6,
+    height: minDim * 0.6,
+    top: -minDim * 0.2,
+    right: -minDim * 0.2,
+  };
+  const circle2Style = {
+    width: minDim * 0.5,
+    height: minDim * 0.5,
+    bottom: -minDim * 0.15,
+    left: -minDim * 0.15,
+  };
+  const circle3Style = {
+    width: minDim * 0.4,
+    height: minDim * 0.4,
+    top: height * 0.4,
+    right: -minDim * 0.1,
+  };
+
+  const logoWrapperStyle = {
+    borderRadius: minDim * 0.25,
+    padding: 20,
+  };
+
+  const logoStyle = {
+    width: minDim * 0.4,
+    height: minDim * 0.4,
+    borderRadius: minDim * 0.2,
+  };
+
   return (
     <View style={styles.container}>
       {/* Decorative Background Circles */}
@@ -137,6 +169,7 @@ export default function Splash({ navigation }) {
         style={[
           styles.decorativeCircle,
           styles.circle1,
+          circle1Style,
           {
             opacity: circle1Anim.interpolate({
               inputRange: [0, 0.5, 1],
@@ -157,6 +190,7 @@ export default function Splash({ navigation }) {
         style={[
           styles.decorativeCircle,
           styles.circle2,
+          circle2Style,
           {
             opacity: circle2Anim.interpolate({
               inputRange: [0, 0.5, 1],
@@ -177,6 +211,7 @@ export default function Splash({ navigation }) {
         style={[
           styles.decorativeCircle,
           styles.circle3,
+          circle3Style,
           {
             opacity: circle3Anim.interpolate({
               inputRange: [0, 0.5, 1],
@@ -205,10 +240,10 @@ export default function Splash({ navigation }) {
             },
           ]}
         >
-          <View style={styles.logoWrapper}>
+          <View style={[styles.logoWrapper, logoWrapperStyle]}>
             <Image
               source={require('../assets/logo.png')}
-              style={styles.logo}
+              style={[styles.logo, logoStyle]}
               resizeMode="contain"
             />
           </View>
@@ -274,24 +309,11 @@ const styles = StyleSheet.create({
     borderRadius: 1000,
     backgroundColor: '#6366f1',
   },
-  circle1: {
-    width: width * 0.6,
-    height: width * 0.6,
-    top: -width * 0.2,
-    right: -width * 0.2,
-  },
+  circle1: {},
   circle2: {
-    width: width * 0.5,
-    height: width * 0.5,
-    bottom: -width * 0.15,
-    left: -width * 0.15,
     backgroundColor: '#8b5cf6',
   },
   circle3: {
-    width: width * 0.4,
-    height: width * 0.4,
-    top: height * 0.4,
-    right: -width * 0.1,
     backgroundColor: '#ec4899',
   },
   logoContainer: {
@@ -299,19 +321,13 @@ const styles = StyleSheet.create({
   },
   logoWrapper: {
     backgroundColor: '#f9fafb',
-    borderRadius: width * 0.25,
-    padding: 20,
     shadowColor: '#6366f1',
     shadowOffset: { width: 0, height: 15 },
     shadowOpacity: 0.25,
     shadowRadius: 30,
     elevation: 15,
   },
-  logo: {
-    width: width * 0.35,
-    height: width * 0.35,
-    borderRadius: width * 0.175, // Half of width/height to make it circular
-  },
+  logo: {},
   textContainer: {
     alignItems: 'center',
     marginBottom: 40,
