@@ -14,23 +14,13 @@ const androidClientId = '713129020648-19pclk3g243ti3mhu6l7fv7k7ll7kndc.apps.goog
 export default function Auth() {
   const { loginWithGoogle } = useAuth();
 
-  // Gunakan makeRedirectUri untuk mendeteksi environment
-  // Di Standalone App: hasilnya 'fabula-mobile://oauth2redirect/google'
-  // Di Expo Go: hasilnya 'exp://...'
   const redirectUri = makeRedirectUri({
-    // scheme: 'fabula-mobile',
     path: 'oauth2redirect/google'
   });
 
-  // Jika di Expo Go, kita TERPAKSA pakai Proxy karena Google memblokir 'exp://'
-  // Tapi jika di Standalone App (Build), kita pakai direct link (lebih stabil)
-  // Syarat: 'fabula-mobile://oauth2redirect/google' HARUS ada di Google Cloud Console
   const finalRedirectUri = redirectUri.includes('exp://') 
     ? 'https://auth.expo.io/@aqmarfayyaz/fabula-mobile'
     : redirectUri;
-
-  console.log("Redirect URI (Original):", redirectUri);
-  console.log("Redirect URI (Final used):", finalRedirectUri);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId,
@@ -39,18 +29,6 @@ export default function Auth() {
     redirectUri: finalRedirectUri,
     scopes: ['profile', 'email'],
   });
-
-  React.useEffect(() => {
-    if (request) {
-      console.log("Generated Request Redirect URI:", request.redirectUri);
-    }
-  }, [request]);
-
-  React.useEffect(() => {
-    console.log("=== WAJIB DIDAFTARKAN DI GOOGLE CONSOLE ===");
-    console.log(finalRedirectUri); 
-    console.log("===========================================");
-  }, [finalRedirectUri]);
 
   React.useEffect(() => {
     const handleAuth = async () => {
