@@ -2,7 +2,7 @@
   "expo": {
     "name": "FabulaMobile",
     "slug": "fabula-mobile",
-    "scheme": "fabula-mobile",
+    "scheme": "com.fabula.mobile",
     "version": "1.0.0",
     "assetBundlePatterns": [
       "**/*"

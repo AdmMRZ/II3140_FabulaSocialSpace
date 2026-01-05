@@ -102,6 +102,24 @@ export default function HomeScreen({ navigation }) {
           </ScrollView>
         </View>
 
+        {/* Tenant Request Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionHeader}>Partnership</Text>
+          <View style={styles.tenantCard}>
+            <View style={styles.tenantContent}>
+              <Text style={styles.tenantTitle}>Want to open a tenant here?</Text>
+              <Text style={styles.tenantDesc}>Join our community and grow your business with us.</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.tenantButton}
+              onPress={() => navigation.navigate('TenantRequest')}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.tenantButtonText}>Request Tenant</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Contact Section */}
         <View style={styles.contactSection}>
           <Text style={styles.sectionHeader}>Visit Us</Text>
@@ -261,6 +279,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
     textAlign: 'center',
+  },
+  tenantCard: {
+    marginHorizontal: 20,
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  tenantContent: {
+    marginBottom: 16,
+  },
+  tenantTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  tenantDesc: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+  },
+  tenantButton: {
+    backgroundColor: '#1a1a1a',
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  tenantButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
   },
   contactSection: {
     marginTop: 32,
