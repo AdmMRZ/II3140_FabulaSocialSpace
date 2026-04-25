@@ -8,13 +8,14 @@ import { useAuth } from '../contexts/AuthContext';
 WebBrowser.maybeCompleteAuthSession();
 
 const webClientId = '713129020648-19pclk3g243ti3mhu6l7fv7k7ll7kndc.apps.googleusercontent.com';
-const iosClientId = '713129020648-19pclk3g243ti3mhu6l7fv7k7ll7kndc.apps.googleusercontent.com';
-const androidClientId = '713129020648-19pclk3g243ti3mhu6l7fv7k7ll7kndc.apps.googleusercontent.com';
+const iosClientId = '713129020648-19pclk3g243ti3mhu6l7fv7k7ll7kndc.apps.googleusercontent.com'; // Create iOS Client ID if needed
+const androidClientId = '713129020648-rio3c03pbig7fqgkdre9vm6a2kvkj4s7.apps.googleusercontent.com'; 
 
 export default function Auth() {
   const { loginWithGoogle } = useAuth();
 
   const redirectUri = makeRedirectUri({
+    scheme: 'com.fabula.mobile',
     path: 'oauth2redirect/google'
   });
 

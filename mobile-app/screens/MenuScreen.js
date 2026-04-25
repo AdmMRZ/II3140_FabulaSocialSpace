@@ -9,7 +9,8 @@ import {
   TouchableOpacity, 
   SafeAreaView,
   StatusBar,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import Navbar from '../components/Navbar';
 import MenuCard from '../components/MenuCard';
@@ -35,6 +36,8 @@ export default function MenuScreen({ navigation }) {
       setMenus(r.data.data || []);
     } catch (error) {
       console.error("Failed to fetch menu:", error);
+      const msg = error.userMessage || error.message || 'Unknown error';
+      Alert.alert('Error Fetching Menu', `${msg}\n\nURL: ${api.defaults.baseURL}/menu`);
       setMenus([]);
     } finally {
       setLoading(false);

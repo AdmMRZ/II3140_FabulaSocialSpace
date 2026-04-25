@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const DEFAULT_BASE = 'https://ii3140fabulasocialspace-production.up.railway.app/api';
+// Default base: try common emulator host, fallback to localhost
+const DEFAULT_BASE = 'http://192.168.48.111:8000/api';
+// Use EXPO_PUBLIC_API_URL if defined (create a .env file), otherwise use default
 const BASE = process.env.EXPO_PUBLIC_API_URL || DEFAULT_BASE;
 
 console.log('API Base URL:', BASE);
